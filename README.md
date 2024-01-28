@@ -1,0 +1,1 @@
+This is an app made in order to make the user upload an avatar verifying if the image uploaded has 512*512 and is in PNG. The architecture used to build this app is MVC architecture with pure JS as frontend and  node js as backend. This was done in order to ensure a good user experience
