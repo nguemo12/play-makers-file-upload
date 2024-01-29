@@ -22,58 +22,78 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <label for="imgInp">Choose Image</label>
             <div class="form-group" style="display: flex;">
-                <input type="file" class="form-control-file" name="image" accept="image/png" id="imgInp" required>
-                <button type="submit" class="btn btn-primary">Upload</button>
+                <input type="file" class="form-control-file" onchange name="image" accept="image/png" id="imgInp"
+                    required>
             </div>
             <div class="form-group">
-                <div style="height: 700px; width: 700px; background-color: rgb(236, 178, 19); border-radius: 50%; ">
-                    <img id="blah" alt="uploaded image"
-                        style="border-radius: 100%; margin-top: 15%; margin-left: 15%; width: 70%;">
+                <div style="height: 512px; width: 512px; background-color: rgb(236, 178, 19); border-radius: 50%; ">
+                    <img id="blah" alt="uploaded image">
                 </div>
             </div>
-
         </form>
-
-
+        <style>
+            .form-group img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+        </style>
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async function (event) {
-            event.preventDefault();
+        document.getElementById('imgInp').addEventListener('change', (event) => {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
 
-            const formData = new FormData(this);
+            if (file) {
+                if (file.type === 'image/png') {
+                    const reader = new FileReader();
 
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData,
-                });
+                    reader.onload = function (e) {
+                        const image = new Image();
+                        image.src = e.target.result;
 
-                const result = await response.text();
-                imgInp.onchange = evt => {
-                    const [file] = imgInp.files
-                    if (file) {
-                        blah.src = URL.createObjectURL(file)
+                        image.onload = function () {
+                            if (image.width === 512 && image.height === 512) {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = image.width;
+                                canvas.height = image.height;
+                                const context = canvas.getContext('2d');
+                                context.drawImage(image, 0, 0, image.width, image.height);
 
-                    }
+                                // Sample color from the center pixel
+                                const centerX = Math.floor(image.width / 2);
+                                const centerY = Math.floor(image.height / 2);
+                                const pixel = context.getImageData(centerX, centerY, 1, 1).data;
+
+                                if (isHappyColor(pixel)) {
+                                    displaySuccessMessage("Image uploaded successfully and it's a happy image!");
+                                    document.getElementById('blah').src = URL.createObjectURL(file);
+                                } else {
+                                    displayErrorMessage("Image is uploaded successfully, but it may not be a happy image.");
+                                }
+                            } else {
+                                displayErrorMessage("Image must be of size 512 x 512");
+                            }
+                        };
+                    };
+
+                    reader.readAsDataURL(file);
+                } else {
+                    displayErrorMessage("Please choose a PNG file.");
                 }
-                
-                    if (result === "File uploaded successfully.") {
-                        displaySuccessMessage(result)
-                    } else {
-                        displayErrorMessage(result);
-                    }
-
-                
-
-
-
-            } catch (error) {
-                console.error(error);
-                displayErrorMessage('An error occurred while uploading the image.');
             }
-        });
+        })
 
+        // Function to check if the color is "happy"
+        function isHappyColor(color) {
+            // Implement your logic to check if the color is "happy"
+            // You may use color values or other criteria
+            // For simplicity, this example assumes that the color is happy if it's not too dark
+            const darknessThreshold = 128; // Adjust as needed
+            return color[0] > darknessThreshold && color[1] > darknessThreshold && color[2] > darknessThreshold;
+        }
         // Function to display success messages
         function displaySuccessMessage(message) {
             const successMessageElement = document.getElementById('successMessage');
@@ -82,7 +102,7 @@
 
             // Hide the success message after 3 seconds (3000 milliseconds)
             setTimeout(() => {
-                successMessageElement.style.display = 'block';
+                successMessageElement.style.display = 'none';
             }, 3000);
         }
 

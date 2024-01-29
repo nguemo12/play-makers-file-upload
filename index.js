@@ -1,8 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const sizeOf = require('image-size'); // Add this line
-
+const sizeOf = require('image-size'); 
 const app = express();
 const port = 3000;
 
@@ -12,6 +11,8 @@ const upload = multer({ storage: storage });
 
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
+
+
 
 app.post('/upload', upload.single('image'), (req, res) => {
   try {
